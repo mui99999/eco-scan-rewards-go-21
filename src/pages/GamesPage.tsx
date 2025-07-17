@@ -442,47 +442,83 @@ const GamesPage = () => {
 
         {/* Sorting Challenge Game - Active Screen */}
         {selectedGame && selectedGame.id === 2 && sortingGameActive && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
+          <div className="h-[calc(100vh-5rem)] flex flex-col">
+            <Card className="flex-1 flex flex-col overflow-hidden">
+              <CardHeader className="pb-2 shrink-0">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Timer size={20} />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Timer size={16} className="sm:w-5 sm:h-5" />
                     Sorting Challenge
                   </CardTitle>
-                  <div className="flex gap-4">
+                  <div className="flex gap-2 sm:gap-4">
                     <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Score</p>
-                      <p className="text-lg font-bold text-primary">{sortingScore}</p>
+                      <p className="text-xs text-muted-foreground">Score</p>
+                      <p className="text-sm sm:text-lg font-bold text-primary">{sortingScore}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Time</p>
-                      <p className="text-lg font-bold text-destructive">{sortingTimeLeft}s</p>
+                      <p className="text-xs text-muted-foreground">Time</p>
+                      <p className="text-sm sm:text-lg font-bold text-destructive">{sortingTimeLeft}s</p>
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 flex flex-col gap-3 p-3 sm:p-6 overflow-hidden">
                 {/* Items to Sort */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Items to Sort:</h3>
-                  <div className="flex flex-wrap gap-2 min-h-[80px] p-4 bg-muted/50 rounded-lg">
+                <div className="flex-1 min-h-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">Items to Sort:</h3>
+                  <div className="flex flex-wrap gap-1 sm:gap-2 p-2 sm:p-3 bg-muted/50 rounded-lg h-full max-h-[25vh] overflow-y-auto">
                     {sortingItems.map((item) => (
                       <div
                         key={item.id}
                         draggable
                         onDragStart={(e) => handleDragStart(e, item)}
-                        className="bg-background p-3 rounded-lg border-2 border-dashed border-border cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 hover:scale-105"
+                        onTouchStart={(e) => {
+                          const touch = e.touches[0];
+                          setDraggedItem(item);
+                        }}
+                         onTouchMove={(e) => {
+                           e.preventDefault();
+                           const touch = e.touches[0];
+                           const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                           if (elementBelow) {
+                             const binElement = elementBelow.closest('[data-bin-id]');
+                             if (binElement && binElement instanceof HTMLElement) {
+                               binElement.style.transform = 'scale(1.05)';
+                             }
+                           }
+                         }}
+                         onTouchEnd={(e) => {
+                           const touch = e.changedTouches[0];
+                           const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                           if (elementBelow && draggedItem) {
+                             const binElement = elementBelow.closest('[data-bin-id]');
+                             if (binElement) {
+                               const binId = binElement.getAttribute('data-bin-id');
+                               handleDrop({ preventDefault: () => {} }, binId);
+                               if (binElement instanceof HTMLElement) {
+                                 binElement.style.transform = 'scale(1)';
+                               }
+                             }
+                           }
+                           setDraggedItem(null);
+                           document.querySelectorAll('[data-bin-id]').forEach(el => {
+                             if (el instanceof HTMLElement) {
+                               el.style.transform = 'scale(1)';
+                             }
+                           });
+                         }}
+                        className="bg-background p-1.5 sm:p-2 rounded-lg border-2 border-dashed border-border cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 hover:scale-105 touch-manipulation"
+                        style={{ minWidth: '50px', userSelect: 'none' }}
                       >
                         <div className="text-center">
-                          <div className="text-2xl mb-1">{item.emoji}</div>
-                          <p className="text-xs font-medium">{item.name}</p>
-                          <p className="text-xs text-muted-foreground">{item.type}</p>
+                          <div className="text-lg sm:text-xl mb-1">{item.emoji}</div>
+                          <p className="text-xs font-medium leading-tight">{item.name}</p>
+                          <p className="text-xs text-muted-foreground leading-tight">{item.type}</p>
                         </div>
                       </div>
                     ))}
                     {sortingItems.length === 0 && (
-                      <div className="w-full text-center text-muted-foreground py-6">
+                      <div className="w-full text-center text-muted-foreground py-4">
                         🎉 All items sorted! Great job!
                       </div>
                     )}
@@ -490,20 +526,21 @@ const GamesPage = () => {
                 </div>
 
                 {/* Recycling Bins */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-muted-foreground">Recycling Bins:</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="flex-1 min-h-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">Recycling Bins:</h3>
+                  <div className="grid grid-cols-5 gap-1 sm:gap-2 h-full max-h-[35vh]">
                     {recyclingBins.map((bin) => (
                       <div
                         key={bin.id}
+                        data-bin-id={bin.id}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, bin.id)}
-                        className={`${bin.color} p-4 rounded-lg text-white min-h-[100px] flex flex-col items-center justify-center border-2 border-dashed border-white/30 transition-all duration-200 hover:border-white/60`}
+                        className={`${bin.color} p-1 sm:p-2 rounded-lg text-white flex flex-col items-center justify-center border-2 border-dashed border-white/30 transition-all duration-200 hover:border-white/60 touch-manipulation`}
                       >
-                        <div className="text-3xl mb-2">🗑️</div>
-                        <p className="font-medium text-center text-sm">{bin.name}</p>
+                        <div className="text-sm sm:text-xl mb-1">🗑️</div>
+                        <p className="font-medium text-center text-xs leading-tight">{bin.name}</p>
                         {bin.items.length > 0 && (
-                          <p className="text-xs text-center opacity-90 mt-1">
+                          <p className="text-xs text-center opacity-90 mt-1 leading-tight hidden sm:block">
                             {bin.items.join(", ")}
                           </p>
                         )}
@@ -512,13 +549,14 @@ const GamesPage = () => {
                   </div>
                 </div>
                 
-                <div className="mt-6 text-center">
+                <div className="text-center shrink-0">
                   <Button 
                     onClick={() => {
                       setSelectedGame(null);
                       setSortingGameActive(false);
                     }}
                     variant="outline"
+                    size="sm"
                   >
                     End Game
                   </Button>
