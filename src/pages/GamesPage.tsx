@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { PointsDisplay } from "@/components/PointsDisplay";
 import { EcoMascot } from "@/components/EcoMascot";
@@ -19,6 +19,13 @@ const GamesPage = () => {
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [gameScore, setGameScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
+
+  // Sorting Game State
+  const [sortingItems, setSortingItems] = useState([]);
+  const [sortingScore, setSortingScore] = useState(0);
+  const [sortingTimeLeft, setSortingTimeLeft] = useState(60);
+  const [sortingGameActive, setSortingGameActive] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
 
   const games = [
     {
@@ -57,6 +64,28 @@ const GamesPage = () => {
     { id: 4, name: "Paper", bin: "Recycling", emoji: "📄" },
     { id: 5, name: "Banana Peel", bin: "Compost", emoji: "🍌" },
     { id: 6, name: "Aluminum Can", bin: "Recycling", emoji: "🥤" }
+  ];
+
+  // Sorting game items based on Hong Kong recycling policy
+  const wasteItems = [
+    { id: 1, name: "Aluminum Can", bin: "blue", emoji: "🥤", type: "Metal" },
+    { id: 2, name: "Plastic Bottle", bin: "blue", emoji: "🍼", type: "Plastic" },
+    { id: 3, name: "Newspaper", bin: "blue", emoji: "📰", type: "Paper" },
+    { id: 4, name: "Glass Bottle", bin: "brown", emoji: "🍾", type: "Glass" },
+    { id: 5, name: "Food Waste", bin: "brown", emoji: "🍎", type: "Food" },
+    { id: 6, name: "Cardboard", bin: "blue", emoji: "📦", type: "Paper" },
+    { id: 7, name: "Banana Peel", bin: "brown", emoji: "🍌", type: "Food" },
+    { id: 8, name: "Soda Can", bin: "blue", emoji: "🥤", type: "Metal" },
+    { id: 9, name: "Wine Bottle", bin: "brown", emoji: "🍷", type: "Glass" },
+    { id: 10, name: "Magazine", bin: "blue", emoji: "📖", type: "Paper" }
+  ];
+
+  const recyclingBins = [
+    { id: "blue", name: "Recyclables", color: "bg-blue-500", items: ["Metal", "Plastic", "Paper"] },
+    { id: "brown", name: "Organic/Glass", color: "bg-amber-600", items: ["Glass", "Food"] },
+    { id: "green", name: "General Waste", color: "bg-green-600", items: [] },
+    { id: "red", name: "Hazardous", color: "bg-red-500", items: [] },
+    { id: "yellow", name: "Special Items", color: "bg-yellow-500", items: [] }
   ];
 
   const initializeMatchingGame = () => {
@@ -111,6 +140,65 @@ const GamesPage = () => {
       }
     }
   };
+
+  // Sorting Game Functions
+  const initializeSortingGame = () => {
+    const shuffledItems = [...wasteItems].sort(() => Math.random() - 0.5).slice(0, 8);
+    setSortingItems(shuffledItems);
+    setSortingScore(0);
+    setSortingTimeLeft(60);
+    setSortingGameActive(true);
+  };
+
+  const handleDragStart = (e, item) => {
+    setDraggedItem(item);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e, binId) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+
+    const correctBin = recyclingBins.find(bin => bin.id === draggedItem.bin);
+    const targetBin = recyclingBins.find(bin => bin.id === binId);
+
+    if (correctBin && targetBin && correctBin.id === targetBin.id) {
+      setSortingScore(prev => prev + 10);
+      setSortingItems(prev => prev.filter(item => item.id !== draggedItem.id));
+    } else {
+      setSortingScore(prev => Math.max(0, prev - 5));
+    }
+
+    setDraggedItem(null);
+
+    // Check if all items are sorted
+    if (sortingItems.length === 1) {
+      setSortingGameActive(false);
+      setUserPoints(prev => prev + 100);
+    }
+  };
+
+  // Timer effect for sorting game
+  useEffect(() => {
+    let interval;
+    if (sortingGameActive && sortingTimeLeft > 0) {
+      interval = setInterval(() => {
+        setSortingTimeLeft(prev => {
+          if (prev <= 1) {
+            setSortingGameActive(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [sortingGameActive, sortingTimeLeft]);
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -300,6 +388,135 @@ const GamesPage = () => {
                     onClick={() => {
                       setSelectedGame(null);
                       setGameActive(false);
+                    }}
+                    variant="outline"
+                  >
+                    End Game
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Sorting Challenge Game - Start Screen */}
+        {selectedGame && selectedGame.id === 2 && !sortingGameActive && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Timer size={20} />
+                  {selectedGame.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center space-y-4">
+                  <EcoMascot 
+                    message="Sort waste into the correct bins according to Hong Kong recycling policy! 🗂️" 
+                    animation="bounce"
+                  />
+                  <p className="text-muted-foreground">
+                    Drag items to the correct recycling bins. You have 60 seconds!<br/>
+                    <span className="text-sm">+10 points for correct, -5 points for wrong</span>
+                  </p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => setSelectedGame(null)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Back to Games
+                    </Button>
+                    <Button 
+                      onClick={initializeSortingGame}
+                      className="flex-1 bg-primary hover:bg-primary/90"
+                    >
+                      Start Game
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Sorting Challenge Game - Active Screen */}
+        {selectedGame && selectedGame.id === 2 && sortingGameActive && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Timer size={20} />
+                    Sorting Challenge
+                  </CardTitle>
+                  <div className="flex gap-4">
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Score</p>
+                      <p className="text-lg font-bold text-primary">{sortingScore}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Time</p>
+                      <p className="text-lg font-bold text-destructive">{sortingTimeLeft}s</p>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Items to Sort */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Items to Sort:</h3>
+                  <div className="flex flex-wrap gap-2 min-h-[80px] p-4 bg-muted/50 rounded-lg">
+                    {sortingItems.map((item) => (
+                      <div
+                        key={item.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, item)}
+                        className="bg-background p-3 rounded-lg border-2 border-dashed border-border cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 hover:scale-105"
+                      >
+                        <div className="text-center">
+                          <div className="text-2xl mb-1">{item.emoji}</div>
+                          <p className="text-xs font-medium">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">{item.type}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {sortingItems.length === 0 && (
+                      <div className="w-full text-center text-muted-foreground py-6">
+                        🎉 All items sorted! Great job!
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Recycling Bins */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground">Recycling Bins:</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {recyclingBins.map((bin) => (
+                      <div
+                        key={bin.id}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, bin.id)}
+                        className={`${bin.color} p-4 rounded-lg text-white min-h-[100px] flex flex-col items-center justify-center border-2 border-dashed border-white/30 transition-all duration-200 hover:border-white/60`}
+                      >
+                        <div className="text-3xl mb-2">🗑️</div>
+                        <p className="font-medium text-center text-sm">{bin.name}</p>
+                        {bin.items.length > 0 && (
+                          <p className="text-xs text-center opacity-90 mt-1">
+                            {bin.items.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mt-6 text-center">
+                  <Button 
+                    onClick={() => {
+                      setSelectedGame(null);
+                      setSortingGameActive(false);
                     }}
                     variant="outline"
                   >
