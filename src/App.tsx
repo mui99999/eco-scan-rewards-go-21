@@ -11,14 +11,17 @@ import LearnPage from "./pages/LearnPage";
 import ShopPage from "./pages/ShopPage";
 import RewardsPage from "./pages/RewardsPage";
 import NotFound from "./pages/NotFound";
-import React, { createContext, useState, useContext } from "react";
-
-const queryClient = new QueryClient();
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 // Language Context
-const LanguageContext = createContext();
+interface LanguageContextType {
+  language: string;
+  setLanguage: (lang: string) => void;
+}
 
-const LanguageProvider = ({ children }) => {
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState("en");
 
   return (
@@ -29,7 +32,7 @@ const LanguageProvider = ({ children }) => {
 };
 
 const LanguageToggle = () => {
-  const { language, setLanguage } = useContext(LanguageContext);
+  const { language, setLanguage } = useContext(LanguageContext)!; // Non-null assertion as we ensure provider exists
   const t = {
     en: "ENG | 中文",
     zh: "ENG | 中文",
@@ -58,19 +61,23 @@ const translations = {
     notFound: "Page Not Found",
   },
   zh: {
-    index: "歡迎使用環保掃描獎勵！ (Foon1 jing4 si3 jung6 bong1 bou2 so2 cim1 biu1 ziu3 leoi6!)",
-    scan: "掃描賺取獎勵 (Sop1 cim1 jaam6 ceoi2 ziu3 leoi6)",
-    centers: "回收中心 (Wui4 sai1 jung2 sam1)",
-    games: "環保遊戲 (Bong1 bou2 jing4 wai6)",
-    learn: "了解可持續發展 (Ji5 haau6 ho2 keoi5 keui4 faat3 zin2)",
-    shop: "環保商店 (Bong1 bou2 soeng1 dim3)",
-    rewards: "您的獎勵 (Neih5 dik1 ziu3 leoi6)",
-    notFound: "頁面未找到 (Jip6 min6 mei6 zaau2 dou3)",
-  };
-};
+    index: "歡迎使用環保掃描獎勵！",
+    scan: "掃描賺取獎勵",
+    centers: "回收中心",
+    games: "環保遊戲",
+    learn: "了解可持續發展",
+    shop: "環保商店",
+    rewards: "您的獎勵",
+    notFound: "頁面未找到",
+  },
+} as const;
+
+interface PageProps {
+  title: string;
+}
 
 const AppContent = () => {
-  const { language } = useContext(LanguageContext);
+  const { language } = useContext(LanguageContext)!;
   const t = translations[language];
 
   return (
@@ -94,18 +101,22 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <LanguageProvider>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </LanguageProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const queryClient = new QueryClient();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <LanguageProvider>
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </LanguageProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
