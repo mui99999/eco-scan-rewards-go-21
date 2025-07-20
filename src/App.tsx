@@ -11,7 +11,7 @@ import LearnPage from "./pages/LearnPage";
 import ShopPage from "./pages/ShopPage";
 import RewardsPage from "./pages/RewardsPage";
 import NotFound from "./pages/NotFound";
-import { LanguageProvider, LanguageToggle } from "./utils/useTranslation"; // Updated import
+import { LanguageProvider, LanguageToggle } from "./utils/language"; // Updated import
 
 const App = () => {
   const queryClient = new QueryClient();

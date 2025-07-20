@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from "src/utils/useTranslation.ts";
 import { Navigation } from "@/components/Navigation";
 import { PointsDisplay } from "@/components/PointsDisplay";
 import { EcoMascot } from "@/components/EcoMascot";
@@ -7,23 +6,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Camera, MapPin, Trophy, Gamepad2, Recycle, Leaf, Award } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import { useTranslation } from "../utils/language";
 
 const Index = () => {
   const [userPoints] = useState(1250);
   const [carbonSaved] = useState(15.7);
 
+  const t = useTranslation(); // Returns a function, not an object
+
   const quickActions = [
-    { icon: Camera, label: "Scan Item", path: "/scan", color: "bg-primary" },
-    { icon: MapPin, label: "Find Centers", path: "/centers", color: "bg-eco" },
-    { icon: Gamepad2, label: "Play Games", path: "/games", color: "bg-reward" },
-    { icon: Award, label: "Shop Rewards", path: "/shop", color: "bg-carbon" },
+    { icon: Camera, label: t("scan"), path: "/scan", color: "bg-primary" },
+    { icon: MapPin, label: t("centers"), path: "/centers", color: "bg-eco" },
+    { icon: Gamepad2, label: t("games"), path: "/games", color: "bg-reward" },
+    { icon: Award, label: t("shop"), path: "/shop", color: "bg-carbon" },
   ];
 
   const stats = [
-    { icon: Recycle, label: "Items Recycled", value: "47", color: "text-primary" },
-    { icon: Leaf, label: "Trees Saved", value: "3.2", color: "text-eco" },
-    { icon: Trophy, label: "Rank", value: "#24", color: "text-reward" },
+    { icon: Recycle, label: t("itemsRecycled"), value: "47", color: "text-primary" },
+    { icon: Leaf, label: t("treesSaved"), value: "3.2", color: "text-eco" },
+    { icon: Trophy, label: t("rank"), value: "#24", color: "text-reward" },
   ];
 
   return (
@@ -32,10 +33,10 @@ const Index = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome to EcoScan! 🌍
+            {t("index")}
           </h1>
           <p className="text-muted-foreground">
-            Scan, Recycle, Earn, and Save Our Planet
+            {t("slogan")}
           </p>
         </div>
 
@@ -44,8 +45,8 @@ const Index = () => {
 
         {/* Mascot */}
         <div className="flex justify-center mb-8">
-          <EcoMascot 
-            message="Ready to make a difference today? 🌱" 
+          <EcoMascot
+            message={t("mascotMessage")}
             animation="float"
             size="lg"
           />
@@ -73,7 +74,7 @@ const Index = () => {
         {/* Stats */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-center">Your Impact This Month</CardTitle>
+            <CardTitle className="text-center">{t("impactTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4">
@@ -96,15 +97,15 @@ const Index = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy size={20} />
-              Daily Challenge
+              {t("dailyChallenge")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4">Scan 3 plastic bottles today and earn 100 bonus Green$ points!</p>
+            <p className="mb-4">{t("challengeText")}</p>
             <div className="bg-white/20 rounded-full h-2 mb-2">
               <div className="bg-white rounded-full h-2 w-1/3"></div>
             </div>
-            <p className="text-sm">Progress: 1/3 items scanned</p>
+            <p className="text-sm">{t("progressText")}</p>
           </CardContent>
         </Card>
       </div>
