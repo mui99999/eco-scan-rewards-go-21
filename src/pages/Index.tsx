@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "src/utils/useTranslation.ts";
 import { Navigation } from "@/components/Navigation";
 import { PointsDisplay } from "@/components/PointsDisplay";
 import { EcoMascot } from "@/components/EcoMascot";
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Camera, MapPin, Trophy, Gamepad2, Recycle, Leaf, Award } from "lucide-react";
 import { Link } from "react-router-dom";
+
 
 const Index = () => {
   const [userPoints] = useState(1250);
