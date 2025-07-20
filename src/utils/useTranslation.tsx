@@ -1,22 +1,27 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-// Language Context
-export const LanguageContext = createContext<{
+// 1. Define context type explicitly
+type LanguageContextType = {
   language: string;
   setLanguage: (lang: string) => void;
-} | undefined>(undefined);
+};
+
+// 2. Create context with explicit type
+export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState("en");
 
+  // 3. Fix JSX syntax - remove space around '='
   return (
-    <LanguageContext.Provider value={{ language, setLanguage }}>
-      {children}
-    </LanguageContext.Provider>
+    <LanguageContext.Provider value= {{ language, setLanguage }
+}>
+  { children }
+  </LanguageContext.Provider>
   );
 };
 
-// Static translations object
+// 4. Define translations outside the hook
 const TRANSLATIONS = {
   en: {
     index: "Welcome to EcoScan! 🌍",
@@ -58,24 +63,19 @@ const TRANSLATIONS = {
   },
 } as const;
 
-// Define valid languages and translation keys
+// 5. Define valid keys and languages
 type ValidLanguage = keyof typeof TRANSLATIONS;
-type TranslationKey = keyof typeof TRANSLATIONS['en'];
-
-const VALID_LANGUAGES = Object.keys(TRANSLATIONS) as ValidLanguage[];
+type TranslationKey = keyof (typeof TRANSLATIONS)['en'];
 
 export const useTranslation = () => {
   const context = useContext(LanguageContext);
   if (!context) {
     throw new Error("useTranslation must be used within a LanguageProvider");
   }
-  const { language } = context;
 
-  // Determine valid language or default to 'en'
-  const lang: ValidLanguage = VALID_LANGUAGES.includes(language as ValidLanguage)
-    ? (language as ValidLanguage)
-    : 'en';
+  // 6. Validate language
+  const lang: ValidLanguage = context.language === 'zh' ? 'zh' : 'en';
 
-  // Return translation function
+  // 7. Return translation function
   return (key: TranslationKey) => TRANSLATIONS[lang][key];
 };
