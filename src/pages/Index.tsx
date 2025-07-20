@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "src/utils/useTranslation.ts";
 import { Navigation } from "@/components/Navigation";
 import { PointsDisplay } from "@/components/PointsDisplay";
 import { EcoMascot } from "@/components/EcoMascot";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Camera, MapPin, Trophy, Gamepad2, Recycle, Leaf, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "../App"; // Adjust path based on your structure
+
 
 const Index = () => {
   const [userPoints] = useState(1250);
